@@ -1,0 +1,65 @@
+services:
+  # 星云核心: REST 9200 + MCP 9300 (Rust 单进程)
+  nebula-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nebula-core
+    restart: unless-stopped
+    ports:
+      - "${NEBULA_PORT:-9200}:9200"
+      - "${NEBULA_MCP_PORT:-9300}:9300"
+    environment:
+      - NEBULA_DATA=/data
+      - NEBULA_EMBED_URL=${NEBULA_EMBED_URL:-http://embed:8300}
+      - NEBULA_RERANK_URL=${NEBULA_RERANK_URL:-http://rerank:8301}
+      - NEBULA_EMBED_DIM=${NEBULA_EMBED_DIM:-1024}
+      - NEBULA_TOKEN_FILE=/run/secrets/nebula_token
+    volumes:
+      - ${NEBULA_DATA_DIR:-./data}:/data
+      - ${NEBULA_TOKEN_FILE:-./secrets/token}:/run/secrets/nebula_token:ro
+    depends_on:
+      embed:
+        condition: service_healthy
+      rerank:
+        condition: service_healthy
+
+  # 嵌入服务: BGE-M3 GGUF (llama.cpp)
+  embed:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.embed
+    container_name: nebula-embed
+    restart: unless-stopped
+    ports:
+      - "${NEBULA_EMBED_PORT:-8300}:8300"
+    volumes:
+      - ${NEBULA_MODEL_DIR:-./models}:/models:ro
+    command: >
+      --model /models/${EMBED_MODEL_FILE:-bge-m3-Q4_K_M.gguf}
+      --port 8300 --embeddings --pooling mean -b 4096 -ub 4096
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8300/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+
+  # 重排服务: reranker GGUF (llama.cpp)
+  rerank:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rerank
+    container_name: nebula-rerank
+    restart: unless-stopped
+    ports:
+      - "${NEBULA_RERANK_PORT:-8301}:8301"
+    volumes:
+      - ${NEBULA_MODEL_DIR:-./models}:/models:ro
+    command: >
+      --model /models/${RERANK_MODEL_FILE:-bge-reranker-v2-m3-Q4_K_M.gguf}
+      --port 8301 --rerank -b 4096 -ub 4096
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8301/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 10

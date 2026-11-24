@@ -1,0 +1,27 @@
+[package]
+name = "nebula-mcp-rs"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# rmcp: Rust 官方 MCP SDK (streamable-HTTP server)。版本/features 由 crate 本地指定
+# (rmcp 内部依赖的 axum 版本可能与 workspace 的 0.7 不同, 故不走 workspace 继承)
+rmcp = { version = "3.3", features = ["transport-streamable-http-server", "client", "schemars"] }
+rmcp-macros = "3.3"
+# 与 rmcp 3.3 对齐: rmcp 用 schemars 1.0 (derive 展开引用 ::schemars)
+schemars = { version = "1" }
+tokio = { workspace = true }
+axum = { version = "0.8", features = ["macros", "http1", "tokio"], default-features = false }
+tower = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+chrono = { workspace = true }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio-util = "0.7"
+futures = "0.3"

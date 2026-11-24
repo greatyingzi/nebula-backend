@@ -1,0 +1,4 @@
+FROM ghcr.io/ggml-org/llama.cpp:server-b6097
+# Embedding service: BGE-M3 GGUF, model file supplied via bind mount at /models
+# Default entrypoint is llama-server; pass --model /models/<file> at runtime.
+EXPOSE 8300

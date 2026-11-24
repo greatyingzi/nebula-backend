@@ -1,0 +1,17 @@
+# data / models / secrets — never commit
+data/
+models/
+secrets/
+.env
+*.db
+*.db-*
+*.sqlite
+*.gguf
+*.token
+token
+llm_key
+# build artifacts
+target/
+*.bak*
+*.log
+.DS_Store

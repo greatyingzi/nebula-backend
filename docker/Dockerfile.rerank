@@ -1,0 +1,3 @@
+FROM ghcr.io/ggml-org/llama.cpp:server-b6097
+# Rerank service: pass --model /models/<rerank-gguf> --port 8301 --rerank at runtime.
+EXPOSE 8301
