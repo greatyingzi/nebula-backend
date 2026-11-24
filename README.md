@@ -11,7 +11,7 @@
 |---|---|---|
 | nebula-core | Rust 单进程，REST + MCP | 9200 / 9300 |
 | embed | BGE-M3 GGUF 向量嵌入 (llama.cpp)，模型内置 | 8300 |
-| rerank | BGE-reranker GGUF 精排 (llama.cpp)，模型内置 | 8301 |
+| rerank | mxbai-rerank-xsmall-v1 ONNX int8 精排，模型内置 | 8301 |
 
 核心只通过 `NEBULA_EMBED_URL` / `NEBULA_RERANK_URL` 调用依赖，可替换为远程机或公开 API。
 
