@@ -1,53 +1,23 @@
+# 星云后端单镜像部署: core + embed + rerank 三服务在一个容器内
+# 构建前把模型放到 ./models/ (见 README), 然后 docker compose up -d --build
 services:
-  nebula-core:
+  nebula:
     build:
       context: .
-      dockerfile: docker/Dockerfile.core
-    container_name: nebula-core
+      dockerfile: Dockerfile
+    container_name: nebula-all
     restart: unless-stopped
     ports:
       - "${NEBULA_PORT:-9200}:9200"
       - "${NEBULA_MCP_PORT:-9300}:9300"
+      - "${NEBULA_EMBED_PORT:-8300}:8300"
+      - "${NEBULA_RERANK_PORT:-8301}:8301"
     environment:
       - NEBULA_DATA=/data
-      - NEBULA_EMBED_URL=${NEBULA_EMBED_URL:-http://embed:8300}
-      - NEBULA_RERANK_URL=${NEBULA_RERANK_URL:-http://rerank:8301}
-      - NEBULA_EMBED_DIM=${NEBULA_EMBED_DIM:-1024}
-      - NEBULA_TOKEN_FILE=/run/secrets/nebula_token
+      - NEBULA_TOKEN_FILE=/run/secrets/token
+      # 默认用容器内服务; 也可指向外部 embed/rerank (含完整路径)
+      - NEBULA_EMBED_URL=${NEBULA_EMBED_URL:-http://127.0.0.1:8300/v1/embeddings}
+      - NEBULA_RERANK_URL=${NEBULA_RERANK_URL:-http://127.0.0.1:8301/v1/rerank}
     volumes:
       - ${NEBULA_DATA_DIR:-./data}:/data
-      - ${NEBULA_TOKEN_FILE:-./secrets/token}:/run/secrets/nebula_token:ro
-    depends_on:
-      embed:
-        condition: service_healthy
-      rerank:
-        condition: service_healthy
-
-  embed:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.embed
-    container_name: nebula-embed
-    restart: unless-stopped
-    ports:
-      - "${NEBULA_EMBED_PORT:-8300}:8300"
-    command: ["--embeddings", "--pooling", "mean", "--port", "8300", "-b", "4096", "-ub", "4096"]
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8300/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 10
-
-  rerank:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.rerank
-    container_name: nebula-rerank
-    restart: unless-stopped
-    ports:
-      - "${NEBULA_RERANK_PORT:-8301}:8301"
-    healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8301/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 10
+      - ${NEBULA_TOKEN_FILE:-./secrets/token}:/run/secrets/token:ro
