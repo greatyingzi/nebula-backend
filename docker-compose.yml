@@ -1,5 +1,4 @@
 services:
-  # 星云核心: REST 9200 + MCP 9300 (Rust 单进程)
   nebula-core:
     build:
       context: .
@@ -24,7 +23,6 @@ services:
       rerank:
         condition: service_healthy
 
-  # 嵌入服务: BGE-M3 GGUF (llama.cpp)
   embed:
     build:
       context: .
@@ -33,18 +31,13 @@ services:
     restart: unless-stopped
     ports:
       - "${NEBULA_EMBED_PORT:-8300}:8300"
-    volumes:
-      - ${NEBULA_MODEL_DIR:-./models}:/models:ro
-    command: >
-      --model /models/${EMBED_MODEL_FILE:-bge-m3-Q4_K_M.gguf}
-      --port 8300 --embeddings --pooling mean -b 4096 -ub 4096
+    command: ["--embeddings", "--pooling", "mean", "--port", "8300", "-b", "4096", "-ub", "4096"]
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:8300/health"]
       interval: 30s
       timeout: 5s
       retries: 10
 
-  # 重排服务: reranker GGUF (llama.cpp)
   rerank:
     build:
       context: .
@@ -53,11 +46,7 @@ services:
     restart: unless-stopped
     ports:
       - "${NEBULA_RERANK_PORT:-8301}:8301"
-    volumes:
-      - ${NEBULA_MODEL_DIR:-./models}:/models:ro
-    command: >
-      --model /models/${RERANK_MODEL_FILE:-bge-reranker-v2-m3-Q4_K_M.gguf}
-      --port 8301 --rerank -b 4096 -ub 4096
+    command: ["--rerank", "--port", "8301", "-b", "4096", "-ub", "4096"]
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:8301/health"]
       interval: 30s

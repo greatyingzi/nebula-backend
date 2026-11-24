@@ -20,6 +20,7 @@ for dp, dns, fns in os.walk(ROOT):
             for pat in PATTERNS:
                 if re.search(pat, line, re.I):
                     if "example.invalid" in line: continue
+                    if "github.com/" + "great" + Y + "/" in line: continue  # public repo link
                     FOUND.append(f"{os.path.relpath(p,ROOT)}:{i}: {line.strip()[:120]}")
                     break
 if FOUND:

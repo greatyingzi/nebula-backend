@@ -1,3 +1,5 @@
 FROM ghcr.io/ggml-org/llama.cpp:server-b6097
-# Rerank service: pass --model /models/<rerank-gguf> --port 8301 --rerank at runtime.
+ARG MODEL_URL=https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/resolve/main/bge-reranker-v2-m3-Q4_K_M.gguf
+RUN mkdir -p /models && (curl -fL --retry 3 -o /models/bge-reranker-v2-m3-Q4_K_M.gguf "$MODEL_URL" || wget -q -O /models/bge-reranker-v2-m3-Q4_K_M.gguf "$MODEL_URL")
+ENV LLAMA_ARG_MODEL=/models/bge-reranker-v2-m3-Q4_K_M.gguf
 EXPOSE 8301

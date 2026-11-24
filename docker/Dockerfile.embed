@@ -1,4 +1,6 @@
 FROM ghcr.io/ggml-org/llama.cpp:server-b6097
-# Embedding service: BGE-M3 GGUF, model file supplied via bind mount at /models
-# Default entrypoint is llama-server; pass --model /models/<file> at runtime.
+# 模型在 build 时下载进镜像（不进 git 仓，规避 GitHub 100MB 限制）
+ARG MODEL_URL=https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q4_K_M.gguf
+RUN mkdir -p /models && (curl -fL --retry 3 -o /models/bge-m3-Q4_K_M.gguf "$MODEL_URL" || wget -q -O /models/bge-m3-Q4_K_M.gguf "$MODEL_URL")
+ENV LLAMA_ARG_MODEL=/models/bge-m3-Q4_K_M.gguf
 EXPOSE 8300
