@@ -18,7 +18,7 @@ MODEL_DIR = "/models"
 # ---- Load model + tokenizer (once) ----
 print(f"Loading mxbai-rerank-xsmall-v1 ONNX from {MODEL_DIR}/model_quantized.onnx ...")
 tok = Tokenizer.from_file(f"{MODEL_DIR}/tokenizer.json")
-sess = ort.InferenceSession(f"{MODEL_DIR}/mxbai-xsmall.onnx",
+sess = ort.InferenceSession(f"{MODEL_DIR}/model_quantized.onnx",
                             providers=["CPUExecutionProvider"])
 sess.intra_op_num_threads = 2  # 4核, 防超订: 2并发x2线程=4
 cls_id = tok.token_to_id("[CLS]")
